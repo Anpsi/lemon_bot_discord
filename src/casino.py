@@ -79,7 +79,17 @@ def set_bet(user, amount):
         """, [str(user), amount])
 
 # Function to play the slots
-async def cmd_slots(client, message, _):
+async def cmd_slots(client, message, arg, auto_take=False):
+    if arg is not None and arg.isdigit():
+        times = int(arg)
+
+        await client.send_message(message.channel, 'Running slots %s times' % times)
+
+        for _ in range(times):
+            await cmd_slots(client, message, None, auto_take=True)
+            await sleep(1)
+        return
+
     player = message.author
     wheel_list = []
     results_dict = {}
@@ -152,7 +162,7 @@ async def cmd_slots(client, message, _):
     wheel_payload = '%s Bet: $%s --> | ' % (player, bet) + ' - '.join(
         wheel_list) + ' |' + ' Outcome: $%s' % winnings
     await client.send_message(message.channel, wheel_payload)
-    while winnings > 0 and not stay:
+    while not auto_take and winnings > 0 and not stay:
         doubletimes = +1
         if doubletimes == 5:
             await client.send_message(message.channel,
